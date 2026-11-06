@@ -80,7 +80,7 @@ public class BankService {
             }
 
             if (simulateFailure) {
-                throw new RuntimeException("Simulated system failure");
+                throw new RuntimeException("All changes were rolled back");
             }
 
             customerRepository.credit(toAccount, amount);

@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Bank Transfer System</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+
+</head>
+<body>
+
+<h1>Bank Transfer System</h1>
+
+<p class="success" th:if="${successMessage}" th:text="${successMessage}"></p>
+<p class="error" th:if="${errorMessage}" th:text="${errorMessage}"></p>
+
+<section>
+    <h2>Bank Statistics</h2>
+    <p>Total Balance: LKR <strong th:text="${totalBalance}"></strong></p>
+    <p>Successful Transfers: <strong th:text="${successCount}"></strong></p>
+    <p>Failed Transfers: <strong th:text="${failedCount}"></strong></p>
+</section>
+
+<section>
+    <h2>Add Customer</h2>
+    <form th:action="@{/customers}" method="post">
+        <input type="text" name="fullName" placeholder="Full name" required>
+        <input type="text" name="accountNumber" placeholder="Account number" required>
+        <input type="email" name="email" placeholder="Email">
+        <input type="number" name="balance" placeholder="Initial balance"
+               min="0" step="0.01" required>
+        <button type="submit">Add Customer</button>
+    </form>
+</section>
+
+<section>
+    <h2>Transfer Money</h2>
+    <form th:action="@{/transfer}" th:object="${transferRequest}" method="post">
+
+        <label>From Account</label>
+        <select th:field="*{fromAccount}" required>
+            <option value="">Select sender</option>
+            <option th:each="customer : ${customers}"
+                    th:value="${customer.accountNumber}"
+                    th:text="${customer.fullName + ' - ' + customer.accountNumber}">
+            </option>
+        </select>
+        <span class="field-error" th:errors="*{fromAccount}"></span>
+
+        <br>
+
+        <label>To Account</label>
+        <select th:field="*{toAccount}" required>
+            <option value="">Select receiver</option>
+            <option th:each="customer : ${customers}"
+                    th:value="${customer.accountNumber}"
+                    th:text="${customer.fullName + ' - ' + customer.accountNumber}">
+            </option>
+        </select>
+        <span class="field-error" th:errors="*{toAccount}"></span>
+
+        <br>
+
+        <label>Amount (LKR)</label>
+        <input type="number" th:field="*{amount}" min="0.01" step="0.01">
+        <span class="field-error" th:errors="*{amount}"></span>
+
+        <br>
+
+        <label>
+            <input type="checkbox" th:field="*{simulateFailure}">
+            Simulate system failure
+        </label>
+
+        <br>
+        <button type="submit">Transfer</button>
+    </form>
+</section>
+
+<section>
+    <h2>Customers</h2>
+
+    <form th:action="@{/}" method="get">
+        <input type="text" name="keyword" placeholder="Search customer name">
+        <button type="submit">Search</button>
+        <a th:href="@{/}">Clear</a>
+    </form>
+
+    <table>
+        <thead>
+        <tr>
+            <th>Name</th>
+            <th>Account Number</th>
+            <th>Email</th>
+            <th>Balance (LKR)</th>
+            <th>History</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="customer : ${customers}">
+            <td th:text="${customer.fullName}"></td>
+            <td th:text="${customer.accountNumber}"></td>
+            <td th:text="${customer.email}"></td>
+            <td th:text="${customer.balance}"></td>
+            <td>
+                <a th:href="@{/accounts/{accountNumber}/history(
+                    accountNumber=${customer.accountNumber})}">View</a>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+</section>
+
+<section>
+    <h2>Latest Transactions</h2>
+
+    <table>
+        <thead>
+        <tr>
+            <th>From</th>
+            <th>To</th>
+            <th>Amount (LKR)</th>
+            <th>Status</th>
+            <th>Description</th>
+            <th>Date</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="transaction : ${transactions}">
+            <td th:text="${transaction.fromAccount}"></td>
+            <td th:text="${transaction.toAccount}"></td>
+            <td th:text="${transaction.amount}"></td>
+            <td th:text="${transaction.status}"></td>
+            <td th:text="${transaction.description}"></td>
+            <td th:text="${transaction.createdAt}"></td>
+        </tr>
+        </tbody>
+    </table>
+</section>
+
+</body>
+</html>
