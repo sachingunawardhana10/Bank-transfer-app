@@ -15,6 +15,8 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import java.math.BigDecimal;
 import java.util.List;
 
+import org.springframework.web.bind.annotation.RequestBody;
+
 @Controller
 @RequiredArgsConstructor
 public class BankController {
@@ -47,67 +49,30 @@ public class BankController {
     }
 
     @PostMapping("/customers")
-    public String addCustomer(
-            @RequestParam String fullName,
-            @RequestParam String accountNumber,
-            @RequestParam(required = false) String email,
-            @RequestParam BigDecimal balance,
-            RedirectAttributes redirectAttributes) {
+    public String addCustomer(@RequestBody Customer customer) {
 
-        try {
-            bankService.createCustomer(
-                    fullName, accountNumber, email, balance);
+        bankService.createCustomer(
+                customer.getFullName(),
+                customer.getAccountNumber(),
+                customer.getEmail(),
+                customer.getBalance()
+        );
 
-            redirectAttributes.addFlashAttribute(
-                    "successMessage", "Customer added successfully");
-
-        } catch (RuntimeException exception) {
-            redirectAttributes.addFlashAttribute(
-                    "errorMessage", exception.getMessage());
-        }
-
-        return "redirect:/";
+        return "Customer created successfully";
     }
 
     @PostMapping("/transfer")
-    public String transfer(
-            @Valid @ModelAttribute("transferRequest")
-            TransferRequest request,
-            BindingResult bindingResult,
-            Model model,
-            RedirectAttributes redirectAttributes) {
+    @ResponseBody
+    public String transfer(@Valid @RequestBody TransferRequest request) {
 
-        if (bindingResult.hasErrors()) {
-            List<Customer> customers = bankService.getAllCustomers();
+        bankService.transfer(
+                request.getFromAccount(),
+                request.getToAccount(),
+                request.getAmount(),
+                request.isSimulateFailure()
+        );
 
-            model.addAttribute("customers", customers);
-            model.addAttribute("transactions", bankService.getAllTransactions());
-            model.addAttribute("totalBalance", bankService.getTotalBalance());
-            model.addAttribute("successCount",
-                    bankService.getSuccessfulTransactionCount());
-            model.addAttribute("failedCount",
-                    bankService.getFailedTransactionCount());
-
-            return "bank";
-        }
-
-        try {
-            bankService.transfer(
-                    request.getFromAccount(),
-                    request.getToAccount(),
-                    request.getAmount(),
-                    request.isSimulateFailure()
-            );
-
-            redirectAttributes.addFlashAttribute(
-                    "successMessage", "Transfer completed successfully");
-
-        } catch (RuntimeException exception) {
-            redirectAttributes.addFlashAttribute(
-                    "errorMessage", exception.getMessage());
-        }
-
-        return "redirect:/";
+        return "Transfer completed successfully";
     }
 
     @GetMapping("/accounts/{accountNumber}/history")
